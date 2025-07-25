@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulador de Onda Sísmica</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    canvas {
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Simulador de Propagación de Onda Sísmica</h1>
+  <p>Presiona el botón para simular una onda sísmica desde una explosión.</p>
+
+  <button onclick="simular()">Simular</button>
+  <br/>
+  <canvas id="grafico" width="800" height="300"></canvas>
+
+  <script>
+    function simular() {
+      const canvas = document.getElementById("grafico");
+      const ctx = canvas.getContext("2d");
+
+      const dx = 1;
+      const dt = 0.001;
+      const c = 300; // velocidad de la onda (m/s)
+      const L = 200; // longitud del terreno (m)
+      const T = 0.2; // tiempo total de simulación (s)
+
+      const Nx = Math.floor(L / dx);
+      const Nt = Math.floor(T / dt);
+      const r = Math.pow(c * dt / dx, 2);
+
+      let u0 = new Array(Nx).fill(0);
+      let u1 = new Array(Nx).fill(0);
+      let u2 = new Array(Nx).fill(0);
+      const centro = Math.floor(Nx / 2);
+      u1[centro] = 100; // impulso inicial en el centro
+
+      for (let t = 0; t < Nt; t++) {
+        for (let i = 1; i < Nx - 1; i++) {
+          u2[i] = 2 * (1 - r) * u1[i] - u0[i] + r * (u1[i - 1] + u1[i + 1]);
+        }
+        u0 = [...u1];
+        u1 = [...u2];
+      }
+
+      // Dibujar la onda resultante
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      for (let i = 0; i < Nx; i++) {
+        let x = (i / Nx) * canvas.width;
+        let y = canvas.height / 2 - u2[i]; // invertir para que suba
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = \"red\";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  </script>
+
+</body>
+</html>
